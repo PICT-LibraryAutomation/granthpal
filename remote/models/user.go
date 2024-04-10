@@ -4,6 +4,7 @@ import "github.com/PICT-LibraryAutomation/granthpal/graph"
 
 type User struct {
 	ID           string `gorm:"primaryKey"`
+	PasswordHash string
 	Kind         graph.UserKind
 	Name         string
 	IssueRecords []IssueRecord `gorm:"foreignKey:UserID"`
