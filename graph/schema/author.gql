@@ -1,0 +1,27 @@
+
+extend type Query {
+  author(id: String!): Author,
+  authors: [Author!]!,
+}
+
+extend type Mutation {
+  createAuthor(inp: CreateAuthorInp!): Author @isKind(kind: LIBRARY_STAFF),
+  deleteAuthor(id: String!): String @isKind(kind: LIBRARY_STAFF),
+  updateAuthor(inp: UpdateAuthorInp!): Author @isKind(kind: LIBRARY_STAFF),
+}
+
+type Author {
+  id: String!,
+  name: String!,
+  books: [BookMetadata!]!,
+}
+
+input CreateAuthorInp {
+  id: String!,
+  name: String!,
+}
+
+input UpdateAuthorInp {
+  id: String!,
+  name: String,
+}

@@ -1,7 +1,6 @@
 package main
 
 import (
-	"log"
 	"net/http"
 	"os"
 
@@ -9,21 +8,39 @@ import (
 	"github.com/99designs/gqlgen/graphql/playground"
 	"github.com/PICT-LibraryAutomation/granthpal/graph"
 	"github.com/PICT-LibraryAutomation/granthpal/graph/resolvers"
+	"github.com/PICT-LibraryAutomation/granthpal/remote"
+	"github.com/go-chi/chi/v5"
+	"github.com/joho/godotenv"
+	"github.com/rs/zerolog"
+	"github.com/rs/zerolog/log"
 )
 
-const defaultPort = "8080"
-
 func main() {
-	port := os.Getenv("PORT")
-	if port == "" {
-		port = defaultPort
+	zerolog.TimeFieldFormat = zerolog.TimeFormatUnix
+	log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
+
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatal().Err(err).Msg("Couldn't load .env file")
 	}
 
-	srv := handler.NewDefaultServer(graph.NewExecutableSchema(graph.Config{Resolvers: &resolvers.Resolver{}}))
+	addr := os.Getenv("GRANTHPAL_ADDR")
+	if addr == "" {
+		log.Fatal().Msg("GRANTHPAL_ADDR not provided")
+	}
 
-	http.Handle("/", playground.Handler("GraphQL playground", "/query"))
-	http.Handle("/query", srv)
+	remoteDB := remote.ConnectToRemote()
 
-	log.Printf("connect to http://localhost:%s/ for GraphQL playground", port)
-	log.Fatal(http.ListenAndServe(":"+port, nil))
+	router := chi.NewRouter()
+	router.Use(remote.RemoteMiddleware(remoteDB))
+
+	srv := handler.NewDefaultServer(graph.NewExecutableSchema(graph.Config{Resolvers: &resolvers.Resolver{
+		Remote: remoteDB,
+	}}))
+
+	router.Handle("/", playground.ApolloSandboxHandler("GraphQL Sandbox", "/gql"))
+	router.Handle("/gql", srv)
+
+	err = http.ListenAndServe(addr, router)
+	log.Fatal().AnErr("Error", err).Msg("Server terminated")
 }

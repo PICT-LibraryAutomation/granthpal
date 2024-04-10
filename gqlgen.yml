@@ -71,3 +71,43 @@ models:
       - github.com/99designs/gqlgen/graphql.Int
       - github.com/99designs/gqlgen/graphql.Int64
       - github.com/99designs/gqlgen/graphql.Int32
+  User:
+    fields:
+      issueRecords:
+        resolver: true
+      payments:
+        resolver: true
+  Author:
+    fields:
+      books:
+        resolver: true
+  Publication:
+    fields:
+      books:
+        resolver: true
+  BookMetadata:
+    fields:
+      authors:
+        resolver: true
+      publication:
+        resolver: true
+  Book:
+    fields:
+      meta:
+        resolver: true
+      issueRecords:
+        resolver: true
+  IssueRecord:
+    fields:
+      user:
+        resolver: true
+      book:
+        resolver: true
+      payment:
+        resolver: true
+  Payment:
+    fields:
+      user:
+        resolver: true
+      issueRecord:
+        resolver: true

@@ -1,0 +1,26 @@
+
+extend type Query {
+  payment(id: String!): Payment,
+  payments: [Payment!]!,
+  userPayments(userID: String!): [Payment!]!,
+}
+
+extend type Mutation {
+  createPayment(inp: CreatePaymentInp!): Payment @isKind(kind: LIBRARY_STAFF),
+  resolvePayment(id: String!): String @isKind(kind: LIBRARY_STAFF),
+}
+
+type Payment {
+  id: String!,
+  userID: String!,
+  user: User!,
+  issueRecord: IssueRecord!,
+  amount: Int!,
+  resolved: Boolean!,
+}
+
+input CreatePaymentInp {
+  id: String!,
+  userID: String!,
+  amount: Int!,
+}

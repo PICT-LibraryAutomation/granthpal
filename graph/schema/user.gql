@@ -1,0 +1,30 @@
+
+extend type Query {
+  user(id: String!): User,
+  users: [User!]!,
+}
+
+extend type Mutation {
+  createUser(inp: CreateUserInp!): User @isKind(kind: LIBRARY_STAFF),
+  deleteUser(id: String!): String @isKind(kind: LIBRARY_STAFF),
+}
+
+type User {
+  id: String!,
+  kind: UserKind!,
+  name: String!,
+  issueRecords: [IssueRecord!]!,
+  payments: [Payment!]!,
+}
+
+enum UserKind {
+  STUDENT,
+  FACULTY,
+  LIBRARY_STAFF,
+}
+
+input CreateUserInp {
+  id: String!,
+  kind: UserKind!,
+  name: String!,
+}

@@ -1,0 +1,27 @@
+
+extend type Query {
+  publication(id: String!): Publication,
+  publications: [Publication!]!,
+}
+
+extend type Mutation {
+  createPublication(inp: CreatePublicationInp!): Publication @isKind(kind: LIBRARY_STAFF),
+  deletePublication(id: String!): String @isKind(kind: LIBRARY_STAFF),
+  updatePublication(inp: UpdatePublicationInp!): Publication @isKind(kind: LIBRARY_STAFF),
+}
+
+type Publication {
+  id: String!,
+  name: String!,
+  books: [BookMetadata!]!,
+}
+
+input CreatePublicationInp {
+  id: String!,
+  name: String!,
+}
+
+input UpdatePublicationInp {
+  id: String!,
+  name: String,
+}

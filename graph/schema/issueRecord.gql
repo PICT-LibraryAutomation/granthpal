@@ -1,0 +1,29 @@
+
+extend type Query {
+  issueRecord(id: String!): IssueRecord,
+  issueRecords: [IssueRecord!]!,
+}
+
+extend type Mutation {
+  issueBook(inp: IssueBookInp!): IssueRecord @isKind(kind: LIBRARY_STAFF),
+  returnBook(bookID: String!): IssueRecord @isKind(kind: LIBRARY_STAFF),
+  renewBook(bookID: String!): IssueRecord @isKind(kind: LIBRARY_STAFF),
+}
+
+type IssueRecord {
+  id: String!,
+  userID: String!,
+  user: User!,
+  bookID: String!,
+  book: Book!,
+  issueDate: Time!,
+  returnDate: Time!,
+  paymentID: String,
+  payment: Payment,
+}
+
+input IssueBookInp {
+  id: String!,
+  userID: String!,
+  bookID: String!,
+}
