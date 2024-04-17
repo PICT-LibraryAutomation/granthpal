@@ -6,8 +6,8 @@ package resolvers
 
 import (
 	"context"
-	"fmt"
 
+	"dario.cat/mergo"
 	"github.com/PICT-LibraryAutomation/granthpal/graph"
 	"github.com/PICT-LibraryAutomation/granthpal/remote/models"
 	"github.com/PICT-LibraryAutomation/granthpal/utils"
@@ -15,12 +15,47 @@ import (
 
 // CreateUser is the resolver for the createUser field.
 func (r *mutationResolver) CreateUser(ctx context.Context, inp graph.CreateUserInp) (*graph.User, error) {
-	panic(fmt.Errorf("not implemented: CreateUser - createUser"))
+	user := models.User{
+		ID:           inp.ID,
+		Kind:         inp.Kind,
+		Name:         inp.Name,
+		Email:        inp.Email,
+		Phone:        inp.Phone,
+		PasswordHash: inp.PasswordHash,
+	}
+
+	if err := r.Remote.Save(&user).Error; err != nil {
+		return nil, err
+	}
+
+	return user.ToGraphQL(), nil
 }
 
 // DeleteUser is the resolver for the deleteUser field.
 func (r *mutationResolver) DeleteUser(ctx context.Context, id string) (*string, error) {
-	panic(fmt.Errorf("not implemented: DeleteUser - deleteUser"))
+	if err := r.Remote.Delete(&models.User{ID: id}).Error; err != nil {
+		return nil, err
+	}
+
+	return &id, nil
+}
+
+// UpdateUser is the resolver for the updateUser field.
+func (r *mutationResolver) UpdateUser(ctx context.Context, inp graph.UpdateUserInp) (*graph.User, error) {
+	var u models.User
+	if err := r.Remote.First(&u, "id = ?", inp.ID).Error; err != nil {
+		return nil, err
+	}
+
+	if err := mergo.Merge(&u, inp, mergo.WithOverride); err != nil {
+		return nil, err
+	}
+
+	if err := r.Remote.Save(&u).Error; err != nil {
+		return nil, err
+	}
+
+	return u.ToGraphQL(), nil
 }
 
 // User is the resolver for the user field.

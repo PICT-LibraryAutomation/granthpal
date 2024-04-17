@@ -18,12 +18,12 @@ type IssueRecord {
   book: Book!,
   issueDate: Time!,
   returnDate: Time!,
+  returned: Boolean!,
   paymentID: String,
   payment: Payment,
 }
 
 input IssueBookInp {
-  id: String!,
   userID: String!,
   bookID: String!,
 }

@@ -6,8 +6,8 @@ package resolvers
 
 import (
 	"context"
-	"fmt"
 
+	"dario.cat/mergo"
 	"github.com/PICT-LibraryAutomation/granthpal/graph"
 	"github.com/PICT-LibraryAutomation/granthpal/remote/models"
 	"github.com/PICT-LibraryAutomation/granthpal/utils"
@@ -37,17 +37,43 @@ func (r *bookResolver) IssueRecords(ctx context.Context, obj *graph.Book) ([]*gr
 
 // CreateBook is the resolver for the createBook field.
 func (r *mutationResolver) CreateBook(ctx context.Context, inp graph.CreateBookInp) (*graph.Book, error) {
-	panic(fmt.Errorf("not implemented: CreateBook - createBook"))
+	b := models.Book{
+		ID:     inp.ID,
+		MetaID: inp.MetaID,
+	}
+
+	if err := r.Remote.Save(&b).Error; err != nil {
+		return nil, err
+	}
+
+	return b.ToGraphQL(), nil
 }
 
-// RemoveBook is the resolver for the removeBook field.
-func (r *mutationResolver) RemoveBook(ctx context.Context, id string) (*string, error) {
-	panic(fmt.Errorf("not implemented: RemoveBook - removeBook"))
+// DeleteBook is the resolver for the deleteBook field.
+func (r *mutationResolver) DeleteBook(ctx context.Context, id string) (*string, error) {
+	if err := r.Remote.Delete(&models.Book{ID: id}).Error; err != nil {
+		return nil, err
+	}
+
+	return &id, nil
 }
 
 // UpdateBook is the resolver for the updateBook field.
 func (r *mutationResolver) UpdateBook(ctx context.Context, inp graph.UpdateBookInp) (*graph.Book, error) {
-	panic(fmt.Errorf("not implemented: UpdateBook - updateBook"))
+	var b models.Book
+	if err := r.Remote.First(&b, "id = ?", inp.ID).Error; err != nil {
+		return nil, err
+	}
+
+	if err := mergo.Merge(&b, inp, mergo.WithOverride); err != nil {
+		return nil, err
+	}
+
+	if err := r.Remote.Save(&b).Error; err != nil {
+		return nil, err
+	}
+
+	return b.ToGraphQL(), nil
 }
 
 // Book is the resolver for the book field.

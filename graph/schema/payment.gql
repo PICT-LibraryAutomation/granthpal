@@ -6,8 +6,7 @@ extend type Query {
 }
 
 extend type Mutation {
-  createPayment(inp: CreatePaymentInp!): Payment @isKind(kind: LIBRARY_STAFF),
-  resolvePayment(id: String!): String @isKind(kind: LIBRARY_STAFF),
+  resolvePayment(id: String!): Payment @isKind(kind: LIBRARY_STAFF),
 }
 
 type Payment {

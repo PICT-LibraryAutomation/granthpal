@@ -13,6 +13,7 @@ type IssueRecord struct {
 	PaymentID  *string
 	IssueDate  time.Time
 	ReturnDate time.Time
+	Returned   bool
 }
 
 func (t *IssueRecord) ToGraphQL() *graph.IssueRecord {
@@ -23,5 +24,6 @@ func (t *IssueRecord) ToGraphQL() *graph.IssueRecord {
 		PaymentID:  t.PaymentID,
 		IssueDate:  t.IssueDate,
 		ReturnDate: t.ReturnDate,
+		Returned:   t.Returned,
 	}
 }

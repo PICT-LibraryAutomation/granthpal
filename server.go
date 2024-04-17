@@ -52,11 +52,17 @@ func main() {
 	router.Use(auth.AuthMiddleware())
 	router.Use(search.SearchMiddleware(s))
 
-	srv := handler.NewDefaultServer(graph.NewExecutableSchema(graph.Config{Resolvers: &resolvers.Resolver{
-		Remote:         remoteDB,
-		SessionManager: sm,
-		Search:         s,
-	}}))
+	srv := handler.NewDefaultServer(graph.NewExecutableSchema(graph.Config{
+		Resolvers: &resolvers.Resolver{
+			Remote:         remoteDB,
+			SessionManager: sm,
+			Search:         s,
+		},
+		Directives: graph.DirectiveRoot{
+			IsAuthenticated: resolvers.IsAuthenticated,
+			IsKind:          resolvers.IsKind,
+		},
+	}))
 
 	router.Handle("/", playground.ApolloSandboxHandler("GraphQL Sandbox", "/gql"))
 	router.Handle("/gql", srv)

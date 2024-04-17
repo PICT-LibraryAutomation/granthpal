@@ -8,6 +8,7 @@ extend type Mutation {
   createBookMeta(inp: CreateBookMetadataInp!): BookMetadata @isKind(kind: LIBRARY_STAFF),
   deleteBookMeta(id: String!): String @isKind(kind: LIBRARY_STAFF),
   updateBookMeta(inp: UpdateBookMetadataInp!): BookMetadata @isKind(kind: LIBRARY_STAFF),
+  changeBookMetaAuthors(id: String!, authors: [String!]!): BookMetadata @isKind(kind: LIBRARY_STAFF),
 }
 
 type BookMetadata {
@@ -24,7 +25,7 @@ input CreateBookMetadataInp {
   id: String!,
   title: String!,
   isbn: String!,
-  authorIDs: String!,
+  authorIDs: [String!]!,
   publicationID: String!,
 }
 
@@ -32,6 +33,5 @@ input UpdateBookMetadataInp {
   id: String!,
   title: String!,
   isbn: String!,
-  authorIDs: String!,
   publicationID: String!,
 }

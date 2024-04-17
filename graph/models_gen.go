@@ -44,11 +44,11 @@ type CreateBookInp struct {
 }
 
 type CreateBookMetadataInp struct {
-	ID            string `json:"id"`
-	Title         string `json:"title"`
-	Isbn          string `json:"isbn"`
-	AuthorIDs     string `json:"authorIDs"`
-	PublicationID string `json:"publicationID"`
+	ID            string   `json:"id"`
+	Title         string   `json:"title"`
+	Isbn          string   `json:"isbn"`
+	AuthorIDs     []string `json:"authorIDs"`
+	PublicationID string   `json:"publicationID"`
 }
 
 type CreatePaymentInp struct {
@@ -63,13 +63,15 @@ type CreatePublicationInp struct {
 }
 
 type CreateUserInp struct {
-	ID   string   `json:"id"`
-	Kind UserKind `json:"kind"`
-	Name string   `json:"name"`
+	ID           string   `json:"id"`
+	Kind         UserKind `json:"kind"`
+	Name         string   `json:"name"`
+	Email        string   `json:"email"`
+	Phone        string   `json:"phone"`
+	PasswordHash string   `json:"PasswordHash"`
 }
 
 type IssueBookInp struct {
-	ID     string `json:"id"`
 	UserID string `json:"userID"`
 	BookID string `json:"bookID"`
 }
@@ -82,6 +84,7 @@ type IssueRecord struct {
 	Book       *Book     `json:"book"`
 	IssueDate  time.Time `json:"issueDate"`
 	ReturnDate time.Time `json:"returnDate"`
+	Returned   bool      `json:"returned"`
 	PaymentID  *string   `json:"paymentID,omitempty"`
 	Payment    *Payment  `json:"payment,omitempty"`
 }
@@ -121,13 +124,19 @@ type UpdateBookMetadataInp struct {
 	ID            string `json:"id"`
 	Title         string `json:"title"`
 	Isbn          string `json:"isbn"`
-	AuthorIDs     string `json:"authorIDs"`
 	PublicationID string `json:"publicationID"`
 }
 
 type UpdatePublicationInp struct {
 	ID   string  `json:"id"`
 	Name *string `json:"name,omitempty"`
+}
+
+type UpdateUserInp struct {
+	ID    string  `json:"id"`
+	Name  *string `json:"name,omitempty"`
+	Email *string `json:"email,omitempty"`
+	Phone *string `json:"phone,omitempty"`
 }
 
 type User struct {

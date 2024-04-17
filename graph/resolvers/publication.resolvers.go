@@ -6,8 +6,8 @@ package resolvers
 
 import (
 	"context"
-	"fmt"
 
+	"dario.cat/mergo"
 	"github.com/PICT-LibraryAutomation/granthpal/graph"
 	"github.com/PICT-LibraryAutomation/granthpal/remote/models"
 	"github.com/PICT-LibraryAutomation/granthpal/utils"
@@ -15,17 +15,43 @@ import (
 
 // CreatePublication is the resolver for the createPublication field.
 func (r *mutationResolver) CreatePublication(ctx context.Context, inp graph.CreatePublicationInp) (*graph.Publication, error) {
-	panic(fmt.Errorf("not implemented: CreatePublication - createPublication"))
+	p := models.Publication{
+		ID:   inp.ID,
+		Name: inp.Name,
+	}
+
+	if err := r.Remote.Save(&p).Error; err != nil {
+		return nil, err
+	}
+
+	return p.ToGraphQL(), nil
 }
 
 // DeletePublication is the resolver for the deletePublication field.
 func (r *mutationResolver) DeletePublication(ctx context.Context, id string) (*string, error) {
-	panic(fmt.Errorf("not implemented: DeletePublication - deletePublication"))
+	if err := r.Remote.Delete(&models.Publication{ID: id}).Error; err != nil {
+		return nil, err
+	}
+
+	return &id, nil
 }
 
 // UpdatePublication is the resolver for the updatePublication field.
 func (r *mutationResolver) UpdatePublication(ctx context.Context, inp graph.UpdatePublicationInp) (*graph.Publication, error) {
-	panic(fmt.Errorf("not implemented: UpdatePublication - updatePublication"))
+	var p models.Publication
+	if err := r.Remote.First(&p, "id = ?", inp.ID).Error; err != nil {
+		return nil, err
+	}
+
+	if err := mergo.Merge(&p, inp, mergo.WithOverride); err != nil {
+		return nil, err
+	}
+
+	if err := r.Remote.Save(&p).Error; err != nil {
+		return nil, err
+	}
+
+	return p.ToGraphQL(), nil
 }
 
 // Books is the resolver for the books field.

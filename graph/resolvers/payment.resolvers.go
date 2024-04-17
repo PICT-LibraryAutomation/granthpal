@@ -6,44 +6,79 @@ package resolvers
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/PICT-LibraryAutomation/granthpal/graph"
+	"github.com/PICT-LibraryAutomation/granthpal/remote/models"
+	"github.com/PICT-LibraryAutomation/granthpal/utils"
 )
 
-// CreatePayment is the resolver for the createPayment field.
-func (r *mutationResolver) CreatePayment(ctx context.Context, inp graph.CreatePaymentInp) (*graph.Payment, error) {
-	panic(fmt.Errorf("not implemented: CreatePayment - createPayment"))
-}
-
 // ResolvePayment is the resolver for the resolvePayment field.
-func (r *mutationResolver) ResolvePayment(ctx context.Context, id string) (*string, error) {
-	panic(fmt.Errorf("not implemented: ResolvePayment - resolvePayment"))
+func (r *mutationResolver) ResolvePayment(ctx context.Context, id string) (*graph.Payment, error) {
+	var p models.Payment
+	if err := r.Remote.First(&p, "id = ?", id).Error; err != nil {
+		return nil, err
+	}
+
+	p.Resolved = true
+	if err := r.Remote.Save(&p).Error; err != nil {
+		return nil, err
+	}
+
+	return p.ToGraphQL(), nil
 }
 
 // User is the resolver for the user field.
 func (r *paymentResolver) User(ctx context.Context, obj *graph.Payment) (*graph.User, error) {
-	panic(fmt.Errorf("not implemented: User - user"))
+	var u models.User
+	if err := r.Remote.First(&u, "id = ?", obj.UserID).Error; err != nil {
+		return nil, err
+	}
+
+	return u.ToGraphQL(), nil
 }
 
 // IssueRecord is the resolver for the issueRecord field.
 func (r *paymentResolver) IssueRecord(ctx context.Context, obj *graph.Payment) (*graph.IssueRecord, error) {
-	panic(fmt.Errorf("not implemented: IssueRecord - issueRecord"))
+	var ir models.IssueRecord
+	if err := r.Remote.First(&ir, "payment_id = ?", obj.ID).Error; err != nil {
+		return nil, err
+	}
+
+	return ir.ToGraphQL(), nil
 }
 
 // Payment is the resolver for the payment field.
 func (r *queryResolver) Payment(ctx context.Context, id string) (*graph.Payment, error) {
-	panic(fmt.Errorf("not implemented: Payment - payment"))
+	var p models.Payment
+	if err := r.Remote.First(&p, "id = ?", id).Error; err != nil {
+		return nil, err
+	}
+
+	return p.ToGraphQL(), nil
 }
 
 // Payments is the resolver for the payments field.
 func (r *queryResolver) Payments(ctx context.Context) ([]*graph.Payment, error) {
-	panic(fmt.Errorf("not implemented: Payments - payments"))
+	var ps []models.Payment
+	if err := r.Remote.Find(&ps).Error; err != nil {
+		return nil, err
+	}
+
+	return utils.Map(ps, func(p models.Payment) *graph.Payment {
+		return p.ToGraphQL()
+	}), nil
 }
 
 // UserPayments is the resolver for the userPayments field.
 func (r *queryResolver) UserPayments(ctx context.Context, userID string) ([]*graph.Payment, error) {
-	panic(fmt.Errorf("not implemented: UserPayments - userPayments"))
+	var ps []models.Payment
+	if err := r.Remote.Find(&ps, "user_id = ?", userID).Error; err != nil {
+		return nil, err
+	}
+
+	return utils.Map(ps, func(p models.Payment) *graph.Payment {
+		return p.ToGraphQL()
+	}), nil
 }
 
 // Payment returns graph.PaymentResolver implementation.

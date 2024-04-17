@@ -6,7 +6,7 @@ extend type Query {
 
 extend type Mutation {
   createBook(inp: CreateBookInp!): Book @isKind(kind: LIBRARY_STAFF),
-  removeBook(id: String!): String @isKind(kind: LIBRARY_STAFF),
+  deleteBook(id: String!): String @isKind(kind: LIBRARY_STAFF),
   updateBook(inp: UpdateBookInp!): Book @isKind(kind: LIBRARY_STAFF),
 }
 

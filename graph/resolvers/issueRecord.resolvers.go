@@ -7,10 +7,12 @@ package resolvers
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/PICT-LibraryAutomation/granthpal/graph"
 	"github.com/PICT-LibraryAutomation/granthpal/remote/models"
 	"github.com/PICT-LibraryAutomation/granthpal/utils"
+	"github.com/google/uuid"
 )
 
 // User is the resolver for the user field.
@@ -49,17 +51,129 @@ func (r *issueRecordResolver) Payment(ctx context.Context, obj *graph.IssueRecor
 
 // IssueBook is the resolver for the issueBook field.
 func (r *mutationResolver) IssueBook(ctx context.Context, inp graph.IssueBookInp) (*graph.IssueRecord, error) {
-	panic(fmt.Errorf("not implemented: IssueBook - issueBook"))
+	ir := models.IssueRecord{
+		ID:         uuid.NewString(),
+		UserID:     inp.UserID,
+		BookID:     inp.BookID,
+		PaymentID:  nil,
+		IssueDate:  time.Now().Local(),
+		ReturnDate: time.Now().Add(utils.ISSUE_PERIOD).Local(),
+		Returned:   false,
+	}
+
+	if err := r.Remote.Save(&ir).Error; err != nil {
+		return nil, err
+	}
+
+	return ir.ToGraphQL(), nil
 }
 
 // ReturnBook is the resolver for the returnBook field.
 func (r *mutationResolver) ReturnBook(ctx context.Context, bookID string) (*graph.IssueRecord, error) {
-	panic(fmt.Errorf("not implemented: ReturnBook - returnBook"))
+	var ir models.IssueRecord
+	if err := r.Remote.First(&ir, "book_id = ?", bookID).Error; err != nil {
+		return nil, err
+	}
+
+	if ir.ReturnDate.Local().After(time.Now().Local()) {
+		days := ir.ReturnDate.Local().Sub(time.Now().Local()).Hours() / 24
+		amount := utils.LATE_FEE_PER_DAY * days
+
+		if ir.PaymentID == nil {
+			p := models.Payment{
+				ID:       uuid.NewString(),
+				UserID:   ir.UserID,
+				Amount:   int(amount),
+				Resolved: false,
+			}
+
+			if err := r.Remote.Save(&p).Error; err != nil {
+				return nil, err
+			}
+
+			ir.PaymentID = &p.ID
+		} else {
+			var p models.Payment
+			if err := r.Remote.First(&p, "id = ?", *ir.PaymentID).Error; err != nil {
+				return nil, err
+			}
+
+			if p.Resolved {
+				p.Resolved = false
+				p.Amount = int(amount)
+
+			} else {
+				p.Amount += int(amount)
+			}
+
+			if err := r.Remote.Save(&p).Error; err != nil {
+				return nil, err
+			}
+		}
+	}
+
+	ir.Returned = true
+	if err := r.Remote.Save(&ir).Error; err != nil {
+		return nil, err
+	}
+
+	return ir.ToGraphQL(), nil
 }
 
 // RenewBook is the resolver for the renewBook field.
 func (r *mutationResolver) RenewBook(ctx context.Context, bookID string) (*graph.IssueRecord, error) {
-	panic(fmt.Errorf("not implemented: RenewBook - renewBook"))
+	var ir models.IssueRecord
+	if err := r.Remote.First(&ir, "book_id = ?", bookID).Error; err != nil {
+		return nil, err
+	}
+
+	if ir.Returned {
+		return nil, fmt.Errorf("book has already been returned")
+	}
+
+	if ir.ReturnDate.Local().After(time.Now().Local()) {
+		days := ir.ReturnDate.Local().Sub(time.Now().Local()).Hours() / 24
+		amount := utils.LATE_FEE_PER_DAY * days
+
+		if ir.PaymentID == nil {
+			p := models.Payment{
+				ID:       uuid.NewString(),
+				UserID:   ir.UserID,
+				Amount:   int(amount),
+				Resolved: false,
+			}
+
+			if err := r.Remote.Save(&p).Error; err != nil {
+				return nil, err
+			}
+
+			ir.PaymentID = &p.ID
+		} else {
+			var p models.Payment
+			if err := r.Remote.First(&p, "id = ?", *ir.PaymentID).Error; err != nil {
+				return nil, err
+			}
+
+			if p.Resolved {
+				p.Resolved = false
+				p.Amount = int(amount)
+
+			} else {
+				p.Amount += int(amount)
+			}
+
+			if err := r.Remote.Save(&p).Error; err != nil {
+				return nil, err
+			}
+		}
+	}
+
+	ir.ReturnDate = time.Now().Add(utils.ISSUE_PERIOD).Local()
+	if err := r.Remote.Save(&ir).Error; err != nil {
+		return nil, err
+	}
+
+	return ir.ToGraphQL(), nil
 }
 
 // IssueRecord is the resolver for the issueRecord field.

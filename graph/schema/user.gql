@@ -7,6 +7,7 @@ extend type Query {
 extend type Mutation {
   createUser(inp: CreateUserInp!): User @isKind(kind: LIBRARY_STAFF),
   deleteUser(id: String!): String @isKind(kind: LIBRARY_STAFF),
+  updateUser(inp: UpdateUserInp!): User,
 }
 
 type User {
@@ -29,4 +30,14 @@ input CreateUserInp {
   id: String!,
   kind: UserKind!,
   name: String!,
+  email: String!,
+  phone: String!,
+  PasswordHash: String!,
+}
+
+input UpdateUserInp {
+  id: String!,
+  name: String,
+  email: String,
+  phone: String,
 }

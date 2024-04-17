@@ -3,6 +3,7 @@ module github.com/PICT-LibraryAutomation/granthpal
 go 1.21.9
 
 require (
+	dario.cat/mergo v1.0.0
 	github.com/99designs/gqlgen v0.17.45
 	github.com/go-chi/chi/v5 v5.0.12
 	github.com/go-chi/cors v1.2.1

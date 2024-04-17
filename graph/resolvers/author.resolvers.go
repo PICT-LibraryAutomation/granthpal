@@ -6,8 +6,8 @@ package resolvers
 
 import (
 	"context"
-	"fmt"
 
+	"dario.cat/mergo"
 	"github.com/PICT-LibraryAutomation/granthpal/graph"
 	"github.com/PICT-LibraryAutomation/granthpal/remote/models"
 	"github.com/PICT-LibraryAutomation/granthpal/utils"
@@ -27,17 +27,43 @@ func (r *authorResolver) Books(ctx context.Context, obj *graph.Author) ([]*graph
 
 // CreateAuthor is the resolver for the createAuthor field.
 func (r *mutationResolver) CreateAuthor(ctx context.Context, inp graph.CreateAuthorInp) (*graph.Author, error) {
-	panic(fmt.Errorf("not implemented: CreateAuthor - createAuthor"))
+	a := models.Author{
+		ID:   inp.ID,
+		Name: inp.Name,
+	}
+
+	if err := r.Remote.Save(&a).Error; err != nil {
+		return nil, err
+	}
+
+	return a.ToGraphQL(), nil
 }
 
 // DeleteAuthor is the resolver for the deleteAuthor field.
 func (r *mutationResolver) DeleteAuthor(ctx context.Context, id string) (*string, error) {
-	panic(fmt.Errorf("not implemented: DeleteAuthor - deleteAuthor"))
+	if err := r.Remote.Delete(&models.Author{ID: id}).Error; err != nil {
+		return nil, err
+	}
+
+	return &id, nil
 }
 
 // UpdateAuthor is the resolver for the updateAuthor field.
 func (r *mutationResolver) UpdateAuthor(ctx context.Context, inp graph.UpdateAuthorInp) (*graph.Author, error) {
-	panic(fmt.Errorf("not implemented: UpdateAuthor - updateAuthor"))
+	var a models.Author
+	if err := r.Remote.First(&a, "id = ?", inp.ID).Error; err != nil {
+		return nil, err
+	}
+
+	if err := mergo.Merge(&a, inp, mergo.WithOverride); err != nil {
+		return nil, err
+	}
+
+	if err := r.Remote.Save(&a).Error; err != nil {
+		return nil, err
+	}
+
+	return a.ToGraphQL(), nil
 }
 
 // Author is the resolver for the author field.
