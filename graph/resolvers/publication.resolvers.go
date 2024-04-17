@@ -9,6 +9,8 @@ import (
 	"fmt"
 
 	"github.com/PICT-LibraryAutomation/granthpal/graph"
+	"github.com/PICT-LibraryAutomation/granthpal/remote/models"
+	"github.com/PICT-LibraryAutomation/granthpal/utils"
 )
 
 // CreatePublication is the resolver for the createPublication field.
@@ -28,17 +30,36 @@ func (r *mutationResolver) UpdatePublication(ctx context.Context, inp graph.Upda
 
 // Books is the resolver for the books field.
 func (r *publicationResolver) Books(ctx context.Context, obj *graph.Publication) ([]*graph.BookMetadata, error) {
-	panic(fmt.Errorf("not implemented: Books - books"))
+	var bs []models.BookMetadata
+	if err := r.Remote.First(&models.Publication{ID: obj.ID}).Association("Books").Find(&bs); err != nil {
+		return nil, err
+	}
+
+	return utils.Map(bs, func(b models.BookMetadata) *graph.BookMetadata {
+		return b.ToGraphQL()
+	}), nil
 }
 
 // Publication is the resolver for the publication field.
 func (r *queryResolver) Publication(ctx context.Context, id string) (*graph.Publication, error) {
-	panic(fmt.Errorf("not implemented: Publication - publication"))
+	var p models.Publication
+	if err := r.Remote.First(&p, "id = ?", id).Error; err != nil {
+		return nil, err
+	}
+
+	return p.ToGraphQL(), nil
 }
 
 // Publications is the resolver for the publications field.
 func (r *queryResolver) Publications(ctx context.Context) ([]*graph.Publication, error) {
-	panic(fmt.Errorf("not implemented: Publications - publications"))
+	var ps []models.Publication
+	if err := r.Remote.Find(&ps).Error; err != nil {
+		return nil, err
+	}
+
+	return utils.Map(ps, func(p models.Publication) *graph.Publication {
+		return p.ToGraphQL()
+	}), nil
 }
 
 // Publication returns graph.PublicationResolver implementation.

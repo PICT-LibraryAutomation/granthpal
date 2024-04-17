@@ -9,16 +9,30 @@ import (
 	"fmt"
 
 	"github.com/PICT-LibraryAutomation/granthpal/graph"
+	"github.com/PICT-LibraryAutomation/granthpal/remote/models"
+	"github.com/PICT-LibraryAutomation/granthpal/utils"
 )
 
 // Meta is the resolver for the meta field.
 func (r *bookResolver) Meta(ctx context.Context, obj *graph.Book) (*graph.BookMetadata, error) {
-	panic(fmt.Errorf("not implemented: Meta - meta"))
+	var m models.BookMetadata
+	if err := r.Remote.First(&m, "id = ?", obj.MetaID).Error; err != nil {
+		return nil, err
+	}
+
+	return m.ToGraphQL(), nil
 }
 
 // IssueRecords is the resolver for the issueRecords field.
 func (r *bookResolver) IssueRecords(ctx context.Context, obj *graph.Book) ([]*graph.IssueRecord, error) {
-	panic(fmt.Errorf("not implemented: IssueRecords - issueRecords"))
+	var irs []models.IssueRecord
+	if err := r.Remote.First(&models.Book{ID: obj.ID}).Association("IssueRecords").Find(&irs); err != nil {
+		return nil, err
+	}
+
+	return utils.Map(irs, func(ir models.IssueRecord) *graph.IssueRecord {
+		return ir.ToGraphQL()
+	}), nil
 }
 
 // CreateBook is the resolver for the createBook field.
@@ -38,12 +52,24 @@ func (r *mutationResolver) UpdateBook(ctx context.Context, inp graph.UpdateBookI
 
 // Book is the resolver for the book field.
 func (r *queryResolver) Book(ctx context.Context, id string) (*graph.Book, error) {
-	panic(fmt.Errorf("not implemented: Book - book"))
+	var b models.Book
+	if err := r.Remote.First(&b, "id = ?", id).Error; err != nil {
+		return nil, err
+	}
+
+	return b.ToGraphQL(), nil
 }
 
 // Books is the resolver for the books field.
 func (r *queryResolver) Books(ctx context.Context) ([]*graph.Book, error) {
-	panic(fmt.Errorf("not implemented: Books - books"))
+	var bs []models.Book
+	if err := r.Remote.Find(&bs).Error; err != nil {
+		return nil, err
+	}
+
+	return utils.Map(bs, func(b models.Book) *graph.Book {
+		return b.ToGraphQL()
+	}), nil
 }
 
 // Book returns graph.BookResolver implementation.

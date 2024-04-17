@@ -66,5 +66,6 @@ func Login(w http.ResponseWriter, r *http.Request) {
 		HttpOnly: true,
 	})
 
+	w.WriteHeader(http.StatusOK)
 	w.Write([]byte("Authenticated"))
 }

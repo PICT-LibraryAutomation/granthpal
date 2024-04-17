@@ -9,21 +9,42 @@ import (
 	"fmt"
 
 	"github.com/PICT-LibraryAutomation/granthpal/graph"
+	"github.com/PICT-LibraryAutomation/granthpal/remote/models"
+	"github.com/PICT-LibraryAutomation/granthpal/utils"
 )
 
 // User is the resolver for the user field.
 func (r *issueRecordResolver) User(ctx context.Context, obj *graph.IssueRecord) (*graph.User, error) {
-	panic(fmt.Errorf("not implemented: User - user"))
+	var u models.User
+	if err := r.Remote.First(&u, "id = ?", obj.UserID).Error; err != nil {
+		return nil, err
+	}
+
+	return u.ToGraphQL(), nil
 }
 
 // Book is the resolver for the book field.
 func (r *issueRecordResolver) Book(ctx context.Context, obj *graph.IssueRecord) (*graph.Book, error) {
-	panic(fmt.Errorf("not implemented: Book - book"))
+	var b models.Book
+	if err := r.Remote.First(&b, "id = ?", obj.BookID).Error; err != nil {
+		return nil, err
+	}
+
+	return b.ToGraphQL(), nil
 }
 
 // Payment is the resolver for the payment field.
 func (r *issueRecordResolver) Payment(ctx context.Context, obj *graph.IssueRecord) (*graph.Payment, error) {
-	panic(fmt.Errorf("not implemented: Payment - payment"))
+	var p models.Payment
+	if obj.PaymentID == nil {
+		return nil, nil
+	}
+
+	if err := r.Remote.First(&p, "id = ?", *obj.PaymentID).Error; err != nil {
+		return nil, err
+	}
+
+	return p.ToGraphQL(), nil
 }
 
 // IssueBook is the resolver for the issueBook field.
@@ -43,12 +64,24 @@ func (r *mutationResolver) RenewBook(ctx context.Context, bookID string) (*graph
 
 // IssueRecord is the resolver for the issueRecord field.
 func (r *queryResolver) IssueRecord(ctx context.Context, id string) (*graph.IssueRecord, error) {
-	panic(fmt.Errorf("not implemented: IssueRecord - issueRecord"))
+	var ir models.IssueRecord
+	if err := r.Remote.First(&ir, "id = ?", id).Error; err != nil {
+		return nil, err
+	}
+
+	return ir.ToGraphQL(), nil
 }
 
 // IssueRecords is the resolver for the issueRecords field.
 func (r *queryResolver) IssueRecords(ctx context.Context) ([]*graph.IssueRecord, error) {
-	panic(fmt.Errorf("not implemented: IssueRecords - issueRecords"))
+	var irs []models.IssueRecord
+	if err := r.Remote.Find(&irs).Error; err != nil {
+		return nil, err
+	}
+
+	return utils.Map(irs, func(ir models.IssueRecord) *graph.IssueRecord {
+		return ir.ToGraphQL()
+	}), nil
 }
 
 // IssueRecord returns graph.IssueRecordResolver implementation.

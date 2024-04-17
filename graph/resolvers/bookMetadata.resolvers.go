@@ -9,16 +9,42 @@ import (
 	"fmt"
 
 	"github.com/PICT-LibraryAutomation/granthpal/graph"
+	"github.com/PICT-LibraryAutomation/granthpal/remote/models"
+	"github.com/PICT-LibraryAutomation/granthpal/utils"
 )
 
 // Authors is the resolver for the authors field.
 func (r *bookMetadataResolver) Authors(ctx context.Context, obj *graph.BookMetadata) ([]*graph.Author, error) {
-	panic(fmt.Errorf("not implemented: Authors - authors"))
+	var as []models.Author
+	if err := r.Remote.First(&models.BookMetadata{ID: obj.ID}).Association("Authors").Find(&as); err != nil {
+		return nil, err
+	}
+
+	return utils.Map(as, func(a models.Author) *graph.Author {
+		return a.ToGraphQL()
+	}), nil
 }
 
 // Publication is the resolver for the publication field.
 func (r *bookMetadataResolver) Publication(ctx context.Context, obj *graph.BookMetadata) (*graph.Publication, error) {
-	panic(fmt.Errorf("not implemented: Publication - publication"))
+	var p models.Publication
+	if err := r.Remote.First(&p, "id = ?", obj.PublicationID).Error; err != nil {
+		return nil, err
+	}
+
+	return p.ToGraphQL(), nil
+}
+
+// Books is the resolver for the books field.
+func (r *bookMetadataResolver) Books(ctx context.Context, obj *graph.BookMetadata) ([]*graph.Book, error) {
+	var bs []models.Book
+	if err := r.Remote.First(&models.BookMetadata{ID: obj.ID}).Association("Books").Find(&bs); err != nil {
+		return nil, err
+	}
+
+	return utils.Map(bs, func(b models.Book) *graph.Book {
+		return b.ToGraphQL()
+	}), nil
 }
 
 // CreateBookMeta is the resolver for the createBookMeta field.
@@ -38,12 +64,24 @@ func (r *mutationResolver) UpdateBookMeta(ctx context.Context, inp graph.UpdateB
 
 // BookMeta is the resolver for the bookMeta field.
 func (r *queryResolver) BookMeta(ctx context.Context, id string) (*graph.BookMetadata, error) {
-	panic(fmt.Errorf("not implemented: BookMeta - bookMeta"))
+	var b models.BookMetadata
+	if err := r.Remote.First(&b, "id = ?", id).Error; err != nil {
+		return nil, err
+	}
+
+	return b.ToGraphQL(), nil
 }
 
 // BookMetas is the resolver for the bookMetas field.
 func (r *queryResolver) BookMetas(ctx context.Context) ([]*graph.BookMetadata, error) {
-	panic(fmt.Errorf("not implemented: BookMetas - bookMetas"))
+	var bs []models.BookMetadata
+	if err := r.Remote.Find(&bs).Error; err != nil {
+		return nil, err
+	}
+
+	return utils.Map(bs, func(b models.BookMetadata) *graph.BookMetadata {
+		return b.ToGraphQL()
+	}), nil
 }
 
 // BookMetadata returns graph.BookMetadataResolver implementation.

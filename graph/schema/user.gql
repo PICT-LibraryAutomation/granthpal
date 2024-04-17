@@ -13,6 +13,8 @@ type User {
   id: String!,
   kind: UserKind!,
   name: String!,
+  email: String!,
+  phone: String!,
   issueRecords: [IssueRecord!]!,
   payments: [Payment!]!,
 }

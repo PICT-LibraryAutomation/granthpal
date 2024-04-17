@@ -8,8 +8,8 @@ type Book struct {
 	IssueRecords []IssueRecord `gorm:"foreignKey:BookID"`
 }
 
-func (t *Book) ToGraphQL() graph.Book {
-	return graph.Book{
+func (t *Book) ToGraphQL() *graph.Book {
+	return &graph.Book{
 		ID:     t.ID,
 		MetaID: t.MetaID,
 	}

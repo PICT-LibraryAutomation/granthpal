@@ -91,6 +91,8 @@ models:
         resolver: true
       publication:
         resolver: true
+      books:
+        resolver: true
   Book:
     fields:
       meta:

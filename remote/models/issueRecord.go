@@ -15,8 +15,8 @@ type IssueRecord struct {
 	ReturnDate time.Time
 }
 
-func (t *IssueRecord) ToGraphQL() graph.IssueRecord {
-	return graph.IssueRecord{
+func (t *IssueRecord) ToGraphQL() *graph.IssueRecord {
+	return &graph.IssueRecord{
 		ID:         t.ID,
 		UserID:     t.UserID,
 		BookID:     t.BookID,

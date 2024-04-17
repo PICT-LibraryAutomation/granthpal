@@ -20,6 +20,7 @@ type Book struct {
 	MetaID       string         `json:"metaID"`
 	Meta         *BookMetadata  `json:"meta"`
 	IssueRecords []*IssueRecord `json:"issueRecords"`
+	Rfid         string         `json:"rfid"`
 }
 
 type BookMetadata struct {
@@ -133,6 +134,8 @@ type User struct {
 	ID           string         `json:"id"`
 	Kind         UserKind       `json:"kind"`
 	Name         string         `json:"name"`
+	Email        string         `json:"email"`
+	Phone        string         `json:"phone"`
 	IssueRecords []*IssueRecord `json:"issueRecords"`
 	Payments     []*Payment     `json:"payments"`
 }

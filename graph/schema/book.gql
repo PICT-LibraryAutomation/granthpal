@@ -15,6 +15,7 @@ type Book {
   metaID: String!,
   meta: BookMetadata!,
   issueRecords: [IssueRecord!]!,
+  rfid: String!,
 }
 
 input CreateBookInp {

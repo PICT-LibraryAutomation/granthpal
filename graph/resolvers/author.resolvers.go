@@ -9,11 +9,20 @@ import (
 	"fmt"
 
 	"github.com/PICT-LibraryAutomation/granthpal/graph"
+	"github.com/PICT-LibraryAutomation/granthpal/remote/models"
+	"github.com/PICT-LibraryAutomation/granthpal/utils"
 )
 
 // Books is the resolver for the books field.
 func (r *authorResolver) Books(ctx context.Context, obj *graph.Author) ([]*graph.BookMetadata, error) {
-	panic(fmt.Errorf("not implemented: Books - books"))
+	var bs []models.BookMetadata
+	if err := r.Remote.First(&models.Author{ID: obj.ID}).Association("Books").Find(&bs); err != nil {
+		return nil, err
+	}
+
+	return utils.Map(bs, func(b models.BookMetadata) *graph.BookMetadata {
+		return b.ToGraphQL()
+	}), nil
 }
 
 // CreateAuthor is the resolver for the createAuthor field.
@@ -33,12 +42,24 @@ func (r *mutationResolver) UpdateAuthor(ctx context.Context, inp graph.UpdateAut
 
 // Author is the resolver for the author field.
 func (r *queryResolver) Author(ctx context.Context, id string) (*graph.Author, error) {
-	panic(fmt.Errorf("not implemented: Author - author"))
+	var a models.Author
+	if err := r.Remote.First(&a, "id = ?", id).Error; err != nil {
+		return nil, err
+	}
+
+	return a.ToGraphQL(), nil
 }
 
 // Authors is the resolver for the authors field.
 func (r *queryResolver) Authors(ctx context.Context) ([]*graph.Author, error) {
-	panic(fmt.Errorf("not implemented: Authors - authors"))
+	var as []models.Author
+	if err := r.Remote.Find(&as).Error; err != nil {
+		return nil, err
+	}
+
+	return utils.Map(as, func(a models.Author) *graph.Author {
+		return a.ToGraphQL()
+	}), nil
 }
 
 // Author returns graph.AuthorResolver implementation.

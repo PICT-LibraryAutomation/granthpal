@@ -67,6 +67,7 @@ type ComplexityRoot struct {
 		IssueRecords func(childComplexity int) int
 		Meta         func(childComplexity int) int
 		MetaID       func(childComplexity int) int
+		Rfid         func(childComplexity int) int
 	}
 
 	BookMetadata struct {
@@ -147,11 +148,13 @@ type ComplexityRoot struct {
 	}
 
 	User struct {
+		Email        func(childComplexity int) int
 		ID           func(childComplexity int) int
 		IssueRecords func(childComplexity int) int
 		Kind         func(childComplexity int) int
 		Name         func(childComplexity int) int
 		Payments     func(childComplexity int) int
+		Phone        func(childComplexity int) int
 	}
 }
 
@@ -166,6 +169,7 @@ type BookMetadataResolver interface {
 	Authors(ctx context.Context, obj *BookMetadata) ([]*Author, error)
 
 	Publication(ctx context.Context, obj *BookMetadata) (*Publication, error)
+	Books(ctx context.Context, obj *BookMetadata) ([]*Book, error)
 }
 type IssueRecordResolver interface {
 	User(ctx context.Context, obj *IssueRecord) (*User, error)
@@ -291,6 +295,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Book.MetaID(childComplexity), true
+
+	case "Book.rfid":
+		if e.complexity.Book.Rfid == nil {
+			break
+		}
+
+		return e.complexity.Book.Rfid(childComplexity), true
 
 	case "BookMetadata.authors":
 		if e.complexity.BookMetadata.Authors == nil {
@@ -840,6 +851,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.Users(childComplexity), true
 
+	case "User.email":
+		if e.complexity.User.Email == nil {
+			break
+		}
+
+		return e.complexity.User.Email(childComplexity), true
+
 	case "User.id":
 		if e.complexity.User.ID == nil {
 			break
@@ -874,6 +892,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.User.Payments(childComplexity), true
+
+	case "User.phone":
+		if e.complexity.User.Phone == nil {
+			break
+		}
+
+		return e.complexity.User.Phone(childComplexity), true
 
 	}
 	return 0, false
@@ -1850,6 +1875,50 @@ func (ec *executionContext) fieldContext_Book_issueRecords(ctx context.Context, 
 	return fc, nil
 }
 
+func (ec *executionContext) _Book_rfid(ctx context.Context, field graphql.CollectedField, obj *Book) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Book_rfid(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Rfid, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Book_rfid(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Book",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _BookMetadata_id(ctx context.Context, field graphql.CollectedField, obj *BookMetadata) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_BookMetadata_id(ctx, field)
 	if err != nil {
@@ -2144,7 +2213,7 @@ func (ec *executionContext) _BookMetadata_books(ctx context.Context, field graph
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Books, nil
+		return ec.resolvers.BookMetadata().Books(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -2165,8 +2234,8 @@ func (ec *executionContext) fieldContext_BookMetadata_books(ctx context.Context,
 	fc = &graphql.FieldContext{
 		Object:     "BookMetadata",
 		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
+		IsMethod:   true,
+		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
 			case "id":
@@ -2177,6 +2246,8 @@ func (ec *executionContext) fieldContext_BookMetadata_books(ctx context.Context,
 				return ec.fieldContext_Book_meta(ctx, field)
 			case "issueRecords":
 				return ec.fieldContext_Book_issueRecords(ctx, field)
+			case "rfid":
+				return ec.fieldContext_Book_rfid(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Book", field.Name)
 		},
@@ -2317,6 +2388,10 @@ func (ec *executionContext) fieldContext_IssueRecord_user(ctx context.Context, f
 				return ec.fieldContext_User_kind(ctx, field)
 			case "name":
 				return ec.fieldContext_User_name(ctx, field)
+			case "email":
+				return ec.fieldContext_User_email(ctx, field)
+			case "phone":
+				return ec.fieldContext_User_phone(ctx, field)
 			case "issueRecords":
 				return ec.fieldContext_User_issueRecords(ctx, field)
 			case "payments":
@@ -2419,6 +2494,8 @@ func (ec *executionContext) fieldContext_IssueRecord_book(ctx context.Context, f
 				return ec.fieldContext_Book_meta(ctx, field)
 			case "issueRecords":
 				return ec.fieldContext_Book_issueRecords(ctx, field)
+			case "rfid":
+				return ec.fieldContext_Book_rfid(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Book", field.Name)
 		},
@@ -2922,6 +2999,8 @@ func (ec *executionContext) fieldContext_Mutation_createBook(ctx context.Context
 				return ec.fieldContext_Book_meta(ctx, field)
 			case "issueRecords":
 				return ec.fieldContext_Book_issueRecords(ctx, field)
+			case "rfid":
+				return ec.fieldContext_Book_rfid(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Book", field.Name)
 		},
@@ -3084,6 +3163,8 @@ func (ec *executionContext) fieldContext_Mutation_updateBook(ctx context.Context
 				return ec.fieldContext_Book_meta(ctx, field)
 			case "issueRecords":
 				return ec.fieldContext_Book_issueRecords(ctx, field)
+			case "rfid":
+				return ec.fieldContext_Book_rfid(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Book", field.Name)
 		},
@@ -4126,6 +4207,10 @@ func (ec *executionContext) fieldContext_Mutation_createUser(ctx context.Context
 				return ec.fieldContext_User_kind(ctx, field)
 			case "name":
 				return ec.fieldContext_User_name(ctx, field)
+			case "email":
+				return ec.fieldContext_User_email(ctx, field)
+			case "phone":
+				return ec.fieldContext_User_phone(ctx, field)
 			case "issueRecords":
 				return ec.fieldContext_User_issueRecords(ctx, field)
 			case "payments":
@@ -4357,6 +4442,10 @@ func (ec *executionContext) fieldContext_Payment_user(ctx context.Context, field
 				return ec.fieldContext_User_kind(ctx, field)
 			case "name":
 				return ec.fieldContext_User_name(ctx, field)
+			case "email":
+				return ec.fieldContext_User_email(ctx, field)
+			case "phone":
+				return ec.fieldContext_User_phone(ctx, field)
 			case "issueRecords":
 				return ec.fieldContext_User_issueRecords(ctx, field)
 			case "payments":
@@ -4824,6 +4913,8 @@ func (ec *executionContext) fieldContext_Query_book(ctx context.Context, field g
 				return ec.fieldContext_Book_meta(ctx, field)
 			case "issueRecords":
 				return ec.fieldContext_Book_issueRecords(ctx, field)
+			case "rfid":
+				return ec.fieldContext_Book_rfid(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Book", field.Name)
 		},
@@ -4889,6 +4980,8 @@ func (ec *executionContext) fieldContext_Query_books(ctx context.Context, field 
 				return ec.fieldContext_Book_meta(ctx, field)
 			case "issueRecords":
 				return ec.fieldContext_Book_issueRecords(ctx, field)
+			case "rfid":
+				return ec.fieldContext_Book_rfid(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Book", field.Name)
 		},
@@ -5507,6 +5600,10 @@ func (ec *executionContext) fieldContext_Query_user(ctx context.Context, field g
 				return ec.fieldContext_User_kind(ctx, field)
 			case "name":
 				return ec.fieldContext_User_name(ctx, field)
+			case "email":
+				return ec.fieldContext_User_email(ctx, field)
+			case "phone":
+				return ec.fieldContext_User_phone(ctx, field)
 			case "issueRecords":
 				return ec.fieldContext_User_issueRecords(ctx, field)
 			case "payments":
@@ -5574,6 +5671,10 @@ func (ec *executionContext) fieldContext_Query_users(ctx context.Context, field 
 				return ec.fieldContext_User_kind(ctx, field)
 			case "name":
 				return ec.fieldContext_User_name(ctx, field)
+			case "email":
+				return ec.fieldContext_User_email(ctx, field)
+			case "phone":
+				return ec.fieldContext_User_phone(ctx, field)
 			case "issueRecords":
 				return ec.fieldContext_User_issueRecords(ctx, field)
 			case "payments":
@@ -5834,6 +5935,94 @@ func (ec *executionContext) _User_name(ctx context.Context, field graphql.Collec
 }
 
 func (ec *executionContext) fieldContext_User_name(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "User",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _User_email(ctx context.Context, field graphql.CollectedField, obj *User) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_User_email(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Email, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_User_email(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "User",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _User_phone(ctx context.Context, field graphql.CollectedField, obj *User) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_User_phone(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Phone, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_User_phone(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "User",
 		Field:      field,
@@ -8359,6 +8548,11 @@ func (ec *executionContext) _Book(ctx context.Context, sel ast.SelectionSet, obj
 			}
 
 			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+		case "rfid":
+			out.Values[i] = ec._Book_rfid(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -8486,10 +8680,41 @@ func (ec *executionContext) _BookMetadata(ctx context.Context, sel ast.Selection
 
 			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
 		case "books":
-			out.Values[i] = ec._BookMetadata_books(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&out.Invalids, 1)
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._BookMetadata_books(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
 			}
+
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
+
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -9385,6 +9610,16 @@ func (ec *executionContext) _User(ctx context.Context, sel ast.SelectionSet, obj
 			}
 		case "name":
 			out.Values[i] = ec._User_name(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "email":
+			out.Values[i] = ec._User_email(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "phone":
+			out.Values[i] = ec._User_phone(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&out.Invalids, 1)
 			}

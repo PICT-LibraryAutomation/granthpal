@@ -29,5 +29,6 @@ func Logout(w http.ResponseWriter, r *http.Request) {
 		MaxAge:   -1,
 	})
 
+	w.WriteHeader(http.StatusOK)
 	w.Write([]byte("Logged Out"))
 }

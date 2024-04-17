@@ -8,8 +8,8 @@ type Publication struct {
 	Books []BookMetadata `gorm:"foreignKey:PublicationID"`
 }
 
-func (t *Publication) ToGraphQL() graph.Publication {
-	return graph.Publication{
+func (t *Publication) ToGraphQL() *graph.Publication {
+	return &graph.Publication{
 		ID:   t.ID,
 		Name: t.Name,
 	}

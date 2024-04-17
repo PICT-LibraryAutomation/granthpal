@@ -9,6 +9,8 @@ import (
 	"fmt"
 
 	"github.com/PICT-LibraryAutomation/granthpal/graph"
+	"github.com/PICT-LibraryAutomation/granthpal/remote/models"
+	"github.com/PICT-LibraryAutomation/granthpal/utils"
 )
 
 // CreateUser is the resolver for the createUser field.
@@ -23,22 +25,48 @@ func (r *mutationResolver) DeleteUser(ctx context.Context, id string) (*string, 
 
 // User is the resolver for the user field.
 func (r *queryResolver) User(ctx context.Context, id string) (*graph.User, error) {
-	panic(fmt.Errorf("not implemented: User - user"))
+	var user models.User
+	if err := r.Remote.First(&user, "id = ?", id).Error; err != nil {
+		return nil, err
+	}
+
+	return user.ToGraphQL(), nil
 }
 
 // Users is the resolver for the users field.
 func (r *queryResolver) Users(ctx context.Context) ([]*graph.User, error) {
-	panic(fmt.Errorf("not implemented: Users - users"))
+	var users []models.User
+	if err := r.Remote.Find(&users).Error; err != nil {
+		return nil, err
+	}
+
+	return utils.Map(users, func(u models.User) *graph.User {
+		return u.ToGraphQL()
+	}), nil
 }
 
 // IssueRecords is the resolver for the issueRecords field.
 func (r *userResolver) IssueRecords(ctx context.Context, obj *graph.User) ([]*graph.IssueRecord, error) {
-	panic(fmt.Errorf("not implemented: IssueRecords - issueRecords"))
+	var records []models.IssueRecord
+	if err := r.Remote.First(&models.User{ID: obj.ID}).Association("IssueRecords").Find(&records); err != nil {
+		return nil, err
+	}
+
+	return utils.Map(records, func(r models.IssueRecord) *graph.IssueRecord {
+		return r.ToGraphQL()
+	}), nil
 }
 
 // Payments is the resolver for the payments field.
 func (r *userResolver) Payments(ctx context.Context, obj *graph.User) ([]*graph.Payment, error) {
-	panic(fmt.Errorf("not implemented: Payments - payments"))
+	var payments []models.Payment
+	if err := r.Remote.First(&models.User{ID: obj.ID}).Association("Payments").Find(&payments); err != nil {
+		return nil, err
+	}
+
+	return utils.Map(payments, func(p models.Payment) *graph.Payment {
+		return p.ToGraphQL()
+	}), nil
 }
 
 // User returns graph.UserResolver implementation.

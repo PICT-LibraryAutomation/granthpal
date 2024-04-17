@@ -12,8 +12,8 @@ import (
 	"github.com/PICT-LibraryAutomation/granthpal/remote"
 	"github.com/PICT-LibraryAutomation/granthpal/search"
 	"github.com/PICT-LibraryAutomation/granthpal/sessions"
-	"github.com/PICT-LibraryAutomation/granthpal/tsdb"
 	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/cors"
 	"github.com/joho/godotenv"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
@@ -34,13 +34,20 @@ func main() {
 	}
 
 	remoteDB := remote.ConnectToRemote()
-	t := tsdb.ConnectToTSDB()
 	sm := sessions.NewSessionManager()
 	s := search.ConnectToMeilisearch()
 
 	router := chi.NewRouter()
+
+	router.Use(cors.Handler(cors.Options{
+		AllowedOrigins:   []string{"https://*", "http://*"},
+		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token"},
+		ExposedHeaders:   []string{"Link"},
+		AllowCredentials: true,
+	}))
+
 	router.Use(remote.RemoteMiddleware(remoteDB))
-	router.Use(tsdb.TSDBMiddleware(t))
 	router.Use(sessions.SessionManagerMiddleware(sm))
 	router.Use(auth.AuthMiddleware())
 	router.Use(search.SearchMiddleware(s))
@@ -53,6 +60,9 @@ func main() {
 
 	router.Handle("/", playground.ApolloSandboxHandler("GraphQL Sandbox", "/gql"))
 	router.Handle("/gql", srv)
+
+	router.Post("/auth/login", auth.Login)
+	router.Post("/auth/logout", auth.Logout)
 
 	log.Info().
 		Str("Address", addr).

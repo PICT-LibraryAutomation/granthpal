@@ -10,8 +10,8 @@ type Payment struct {
 	Resolved    bool
 }
 
-func (t *Payment) ToGraphQL() graph.Payment {
-	return graph.Payment{
+func (t *Payment) ToGraphQL() *graph.Payment {
+	return &graph.Payment{
 		ID:       t.ID,
 		UserID:   t.UserID,
 		Amount:   t.Amount,
